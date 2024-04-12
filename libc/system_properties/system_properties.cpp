@@ -308,13 +308,13 @@ int SystemProperties::Update(prop_info* pi, const char* value, unsigned int len)
   serial |= 1;
   atomic_store_explicit(&pi->serial, serial, memory_order_release);
   atomic_thread_fence(memory_order_release);  // Order preceding store w.r.t. memcpy().
-  memcpy(pi->value, value, len + 1);
+  strncpy(pi->value, value, PROP_VALUE_MAX);
   // TODO: Eventually replace the above with something like atomic_store_per_byte_memcpy from
   // wg21.link/p1478 . This is needed for the preceding memcpy and the reader-side copies as well.
   // In general, memcpy uses near atomic_thread_fence() are suspect.
   if (have_override) {
     atomic_store_explicit(&override_pi->serial, serial, memory_order_relaxed);
-    memcpy(override_pi->value, value, len + 1);
+    strncpy(override_pi->value, value, PROP_VALUE_MAX);
   }
   // Now the primary value property area is up-to-date. Let readers know that they should
   // look at the property value instead of the backup area.
